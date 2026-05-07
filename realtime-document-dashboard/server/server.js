@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { setupSockets } from './sockets/index.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import documentRoutes from './routes/documentRoutes.js';
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -43,6 +44,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/upload', uploadRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
