@@ -25,10 +25,22 @@ export const setupSockets = (httpServer) => {
     });
 
     // Handle bulk upload completion from client
-    socket.on('bulk-upload-complete', (data) => {
+    socket.on('bulk-upload-complete', async (data) => {
       console.log(`User ${socket.id} completed bulk upload of ${data.count} files`);
-      // Broadcast to everyone, including sender, so their global toaster catches it
-      io.emit('bulk-upload-success', data);
+      
+      try {
+        const { default: Notification } = await import('../models/Notification.js');
+        const notification = await Notification.create({
+          message: `Successfully processed a bulk upload of ${data.count} documents.`,
+          type: 'success'
+        });
+        
+        io.emit('bulk-upload-success', data);
+        io.emit('notification-received', notification);
+      } catch (err) {
+        console.error('Failed to create bulk notification', err);
+        io.emit('bulk-upload-success', data);
+      }
     });
 
     socket.on('disconnect', () => {

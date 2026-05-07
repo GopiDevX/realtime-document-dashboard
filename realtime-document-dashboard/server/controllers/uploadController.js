@@ -1,4 +1,5 @@
 import Document from '../models/Document.js';
+import Notification from '../models/Notification.js';
 
 // @desc    Upload a document
 // @route   POST /api/upload
@@ -20,6 +21,12 @@ export const uploadDocument = async (req, res) => {
       mimetype
     });
 
+    // Create a notification for the newly uploaded document
+    const notification = await Notification.create({
+      message: `Document "${originalname}" was uploaded successfully.`,
+      type: 'success'
+    });
+
     // Emit event via Socket.io
     if (req.io) {
       req.io.emit('document-uploaded', {
@@ -30,6 +37,9 @@ export const uploadDocument = async (req, res) => {
         status: newDocument.status,
         uploadDate: newDocument.uploadDate
       });
+
+      // Emit new notification
+      req.io.emit('notification-received', notification);
     }
 
     return res.status(201).json({
@@ -40,6 +50,17 @@ export const uploadDocument = async (req, res) => {
 
   } catch (error) {
     console.error(`Upload error: ${error.message}`);
+    
+    // Attempt to create an error notification if io is available
+    if (req.io && req.file) {
+      const errorNotif = await Notification.create({
+        message: `Failed to upload document "${req.file.originalname}".`,
+        type: 'error'
+      }).catch(e => console.error(e));
+      
+      if (errorNotif) req.io.emit('notification-received', errorNotif);
+    }
+
     return res.status(500).json({ success: false, error: 'Server error during upload' });
   }
 };

@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { socket } from '../socket/socketClient';
+import NotificationBell from '../components/NotificationBell';
 
 const DashboardLayout = () => {
   useEffect(() => {
@@ -72,10 +73,7 @@ const DashboardLayout = () => {
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-8 z-10">
           <h1 className="text-xl font-bold text-gray-800">Overview</h1>
           <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-400 hover:text-brand-500 transition-colors relative">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            <NotificationBell />
             <div className="w-9 h-9 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 border-2 border-white shadow-sm overflow-hidden">
               <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile" className="w-full h-full object-cover" />
             </div>
