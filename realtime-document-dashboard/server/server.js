@@ -1,30 +1,33 @@
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { createServer } from 'http';
+import connectDB from './config/db.js';
+
+dotenv.config();
+
+// Connect to MongoDB
+connectDB();
+
 const app = express();
-const PORT = process.env.PORT || 5000;
-const corsMiddleware = require('./middleware/corsMiddleware');
-const fileRoutes = require('./routes/fileRoutes');
-const db = require('./config/db');
+const httpServer = createServer(app);
 
-db();
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
-app.use(corsMiddleware);
 app.use(express.json());
-app.use('/api/files', fileRoutes);
+app.use(express.urlencoded({ extended: true }));
 
-const server = http.createServer(app);
-const io = new Server(server);
-
-io.on('connection', (socket) => {
-    console.log('New client connected');
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.send('Realtime Document Dashboard API is running...');
 });
 
-server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 5000;
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
