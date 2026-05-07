@@ -1,5 +1,4 @@
-"# realtime-document-dashboard" 
-"# realtime-document-dashboard" 
+
 # Realtime Document Dashboard
 
 A modern, full-stack web application for uploading, managing, and collaborating on PDF documents in real-time. Built with a beautiful SaaS-inspired UI, drag-and-drop capabilities, and live socket connections.
