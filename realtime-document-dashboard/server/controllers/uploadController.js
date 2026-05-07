@@ -29,7 +29,7 @@ export const uploadDocument = async (req, res) => {
 
     // Emit event via Socket.io
     if (req.io) {
-      req.io.emit('document-uploaded', {
+      req.io.emit('upload-complete', {
         id: newDocument._id,
         filename: newDocument.filename,
         originalName: newDocument.originalName,
@@ -39,7 +39,7 @@ export const uploadDocument = async (req, res) => {
       });
 
       // Emit new notification
-      req.io.emit('notification-received', notification);
+      req.io.emit('notification-created', notification);
     }
 
     return res.status(201).json({
@@ -53,12 +53,14 @@ export const uploadDocument = async (req, res) => {
     
     // Attempt to create an error notification if io is available
     if (req.io && req.file) {
+      req.io.emit('upload-failed', { filename: req.file.originalname, error: error.message });
+
       const errorNotif = await Notification.create({
         message: `Failed to upload document "${req.file.originalname}".`,
         type: 'error'
       }).catch(e => console.error(e));
       
-      if (errorNotif) req.io.emit('notification-received', errorNotif);
+      if (errorNotif) req.io.emit('notification-created', errorNotif);
     }
 
     return res.status(500).json({ success: false, error: 'Server error during upload' });

@@ -92,3 +92,34 @@ realtime-document-dashboard/
     ├── uploads/            # Local storage for uploaded documents
     └── server.js           # Main Express application
 ```
+
+---
+
+## 🌍 Deployment Guide
+
+This application is designed for modern cloud deployment. 
+
+### Database: MongoDB Atlas
+1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Whitelist `0.0.0.0/0` in Network Access.
+3. Get your connection string and add it to your Backend Environment Variables as `MONGODB_URI`.
+
+### Backend: Render
+1. Create a new "Web Service" on [Render](https://render.com/).
+2. Connect your GitHub repository.
+3. Root Directory: `server`
+4. Build Command: `npm install`
+5. Start Command: `npm start` (Make sure to add `"start": "node server.js"` to `server/package.json`)
+6. Add Environment Variables:
+   - `MONGODB_URI`: Your Atlas connection string
+   - `CLIENT_URL`: Your deployed frontend URL (e.g., https://your-app.vercel.app)
+   - `PORT`: `5000`
+
+### Frontend: Vercel
+1. Create a new Project on [Vercel](https://vercel.com/).
+2. Connect your GitHub repository.
+3. Root Directory: `client`
+4. Framework Preset: `Vite`
+5. Add Environment Variables:
+   - `VITE_SERVER_URL`: Your deployed Render backend URL (e.g., https://your-backend.onrender.com)
+6. Click Deploy!

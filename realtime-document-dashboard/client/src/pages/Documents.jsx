@@ -48,10 +48,10 @@ const Documents = () => {
       });
     };
 
-    socket.on('document-uploaded', handleNewDocument);
+    socket.on('upload-complete', handleNewDocument);
 
     return () => {
-      socket.off('document-uploaded', handleNewDocument);
+      socket.off('upload-complete', handleNewDocument);
     };
   }, []);
 

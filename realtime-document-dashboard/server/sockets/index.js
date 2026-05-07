@@ -36,7 +36,7 @@ export const setupSockets = (httpServer) => {
         });
         
         io.emit('bulk-upload-success', data);
-        io.emit('notification-received', notification);
+        io.emit('notification-created', notification);
       } catch (err) {
         console.error('Failed to create bulk notification', err);
         io.emit('bulk-upload-success', data);

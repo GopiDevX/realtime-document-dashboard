@@ -23,11 +23,11 @@ const NotificationBell = () => {
       fetchNotifications();
     };
 
-    socket.on('notification-received', handleNewNotification);
+    socket.on('notification-created', handleNewNotification);
     socket.on('bulk-upload-success', handleBulkSuccess);
 
     return () => {
-      socket.off('notification-received', handleNewNotification);
+      socket.off('notification-created', handleNewNotification);
       socket.off('bulk-upload-success', handleBulkSuccess);
     };
   }, []);
