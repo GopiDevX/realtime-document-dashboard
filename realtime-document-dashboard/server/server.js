@@ -8,6 +8,7 @@ import connectDB from './config/db.js';
 import { setupSockets } from './sockets/index.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -26,7 +27,7 @@ const io = setupSockets(httpServer);
 
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
 
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
