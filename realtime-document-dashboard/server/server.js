@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { setupSockets } from './sockets/index.js';
-import { upload } from './middleware/upload.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 // Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -41,29 +41,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Routes
+app.use('/api/upload', uploadRoutes);
+
 // Basic route for testing
 app.get('/', (req, res) => {
   res.send('Realtime Document Dashboard API is running...');
-});
-
-// Upload route
-app.post('/api/upload', upload.single('document'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  
-  // Here we would typically save document info to MongoDB
-  // Emitting an event to notify clients of a new document
-  req.io.emit('document-uploaded', {
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    size: req.file.size
-  });
-
-  res.status(200).json({ 
-    message: 'File uploaded successfully',
-    file: req.file 
-  });
 });
 
 const PORT = process.env.PORT || 5000;

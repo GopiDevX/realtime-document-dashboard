@@ -24,7 +24,7 @@ export const upload = multer({
 // Check file type
 function checkFileType(file, cb) {
   // Allowed ext
-  const filetypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt/;
+  const filetypes = /pdf/;
   // Check ext
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   // Check mime
@@ -33,6 +33,6 @@ function checkFileType(file, cb) {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb('Error: Invalid File Type');
+    cb('Error: Only PDF files are allowed!');
   }
 }
