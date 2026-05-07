@@ -1,0 +1,142 @@
+import { useState } from 'react';
+import axios from 'axios';
+import UploadZone from '../components/UploadZone';
+import FilePreviewCard from '../components/FilePreviewCard';
+
+const Uploads = () => {
+  const [files, setFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFilesSelected = (newFiles) => {
+    // Prevent duplicates by checking name and size
+    const filteredNew = newFiles.filter(newFile => 
+      !files.some(existing => existing.file.name === newFile.name && existing.file.size === newFile.size)
+    );
+
+    const newFileObjects = filteredNew.map(file => ({
+      file,
+      status: 'pending', // pending, uploading, completed, failed
+      progress: 0
+    }));
+
+    setFiles(prev => [...prev, ...newFileObjects]);
+  };
+
+  const removeFile = (fileName) => {
+    setFiles(prev => prev.filter(f => f.file.name !== fileName));
+  };
+
+  const uploadFiles = async () => {
+    const pendingFiles = files.filter(f => f.status === 'pending' || f.status === 'failed');
+    if (pendingFiles.length === 0) return;
+
+    setIsUploading(true);
+
+    // Upload files sequentially or in parallel. Let's do parallel for speed, but updating their status individually.
+    const uploadPromises = pendingFiles.map(async (fileObj) => {
+      // Mark as uploading
+      updateFileStatus(fileObj.file.name, 'uploading', 0);
+
+      const formData = new FormData();
+      formData.append('document', fileObj.file); // Assuming backend expects 'document' field, wait, multer expects whatever field name we define. Let's use 'document'.
+
+      try {
+        const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+        
+        await axios.post(`${SERVER_URL}/api/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            updateFileStatus(fileObj.file.name, 'uploading', percentCompleted);
+          }
+        });
+
+        // Mark as completed
+        updateFileStatus(fileObj.file.name, 'completed', 100);
+      } catch (error) {
+        console.error('Upload failed for', fileObj.file.name, error);
+        updateFileStatus(fileObj.file.name, 'failed', 0);
+      }
+    });
+
+    await Promise.allSettled(uploadPromises);
+    setIsUploading(false);
+  };
+
+  const updateFileStatus = (fileName, status, progress) => {
+    setFiles(prev => prev.map(f => {
+      if (f.file.name === fileName) {
+        return { ...f, status, progress };
+      }
+      return f;
+    }));
+  };
+
+  const pendingCount = files.filter(f => f.status === 'pending' || f.status === 'failed').length;
+
+  return (
+    <div className="max-w-4xl mx-auto animate-fade-in-up">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Upload Documents</h2>
+        <p className="text-gray-500">
+          Upload PDF documents securely. They will be processed and available in real-time.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
+        <UploadZone onFilesSelected={handleFilesSelected} allowMultiple={true} />
+      </div>
+
+      {files.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 className="font-bold text-gray-800">
+              Selected Files <span className="ml-2 bg-brand-100 text-brand-600 py-0.5 px-2.5 rounded-full text-sm">{files.length}</span>
+            </h3>
+            
+            {pendingCount > 0 && (
+              <button 
+                onClick={uploadFiles}
+                disabled={isUploading}
+                className={`flex items-center px-4 py-2 rounded-xl font-medium text-white transition-all ${
+                  isUploading 
+                    ? 'bg-brand-400 cursor-not-allowed' 
+                    : 'bg-brand-600 hover:bg-brand-700 shadow-sm hover:shadow active:scale-95'
+                }`}
+              >
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Upload {pendingCount} Files
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto">
+            {files.map((fileObj, idx) => (
+              <FilePreviewCard 
+                key={`${fileObj.file.name}-${idx}`} 
+                fileObj={fileObj} 
+                onRemove={removeFile}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Uploads;

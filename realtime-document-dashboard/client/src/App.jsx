@@ -1,13 +1,19 @@
-import React from 'react';
-import DashboardShell from './components/DashboardShell';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DashboardLayout from './layouts/DashboardLayout';
+import Dashboard from './pages/Dashboard';
+import Uploads from './pages/Uploads';
 
-const App = () => {
-    return (
-        <DashboardShell>
-            {/* Additional routes and components can be added here */}
-            <h1 className="text-2xl font-bold">Welcome to the Real-time Document Dashboard</h1>
-        </DashboardShell>
-    );
-};
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<DashboardLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="uploads" element={<Uploads />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;
