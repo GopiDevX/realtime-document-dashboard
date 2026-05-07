@@ -1,99 +1,94 @@
-# realtime-document-dashboard
+# Realtime Document Dashboard
 
-## Overview
-The Realtime Document Dashboard is a full-stack application that allows users to upload and manage documents in real-time. It features a responsive dashboard built with React, Vite, and Tailwind CSS for the frontend, and a Node.js and Express backend with MongoDB for data storage.
+A modern, full-stack web application for uploading, managing, and collaborating on PDF documents in real-time. Built with a beautiful SaaS-inspired UI, drag-and-drop capabilities, and live socket connections.
 
-## Project Structure
-```
-realtime-document-dashboard
-├── client                # Frontend application
-│   ├── public            # Static assets
-│   ├── src               # Source code
-│   │   ├── components    # React components
-│   │   ├── pages         # Application pages
-│   │   ├── styles        # CSS styles
-│   │   ├── App.jsx       # Main application component
-│   │   └── main.jsx      # Entry point for Vite
-│   ├── index.html        # Main HTML file
-│   ├── package.json       # Frontend dependencies
-│   ├── postcss.config.js  # PostCSS configuration
-│   ├── tailwind.config.js  # Tailwind CSS configuration
-│   └── vite.config.js     # Vite configuration
-├── server                # Backend application
-│   ├── config            # Configuration files
-│   │   └── db.js        # MongoDB connection
-│   ├── controllers       # Controller functions
-│   │   └── fileController.js # File handling
-│   ├── middleware        # Middleware functions
-│   │   └── corsMiddleware.js # CORS support
-│   ├── models            # Mongoose models
-│   │   └── File.js      # File schema
-│   ├── routes            # API routes
-│   │   └── fileRoutes.js # File upload routes
-│   ├── app.js            # Express app setup
-│   ├── server.js         # Server entry point
-│   ├── package.json      # Backend dependencies
-│   └── .env              # Environment variables
-└── README.md             # Project documentation
+## Tech Stack
+
+**Frontend:**
+- React 18 + Vite
+- Tailwind CSS 3
+- Socket.IO Client
+- React Router DOM
+- Axios
+
+**Backend:**
+- Node.js + Express
+- MongoDB (Mongoose)
+- Socket.IO
+- Multer (File Uploads)
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB running locally (default: `mongodb://localhost:27017`) or a MongoDB Atlas URI
+
+### 2. Backend Setup
+Navigate into the server directory and install dependencies:
+```bash
+cd server
+npm install
 ```
 
-## Getting Started
+Ensure your `.env` file in the `server` directory is configured:
+```env
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/realtime-document-dashboard
+CLIENT_URL=http://localhost:3000
+```
 
-### Prerequisites
-- Node.js (version 14 or higher)
-- MongoDB (local or cloud instance)
-- Git (optional, for version control)
+Start the backend development server:
+```bash
+npm run dev
+```
+*The server will start on `http://localhost:5000`*
 
-### Installation
+### 3. Frontend Setup
+Open a new terminal window, navigate into the client directory and install dependencies:
+```bash
+cd client
+npm install
+```
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/realtime-document-dashboard.git
-   cd realtime-document-dashboard
-   ```
+Start the Vite development server:
+```bash
+npm run dev
+```
+*The frontend will start on `http://localhost:3000`*
 
-2. Install dependencies for the client:
-   ```
-   cd client
-   npm install
-   ```
+---
 
-3. Install dependencies for the server:
-   ```
-   cd ../server
-   npm install
-   ```
+## 🌟 Key Features
 
-4. Set up environment variables:
-   - Create a `.env` file in the `server` directory and add your MongoDB connection string:
-     ```
-     MONGODB_URI=your_mongodb_connection_string
-     ```
+- **Drag & Drop Uploads**: Support for single and multiple PDF file uploads with a smooth, interactive dropzone.
+- **Real-time Progress Tracking**: Live visual progress bars and animated network speed indicators using Axios.
+- **Socket Integration**: Real-time event broadcasting when documents are uploaded.
+- **Modern UI/UX**: Built with Tailwind CSS, featuring subtle micro-animations, a clean layout, and the beautiful Livvic font.
+- **Robust Validation**: Strict frontend and backend validation allowing only `.pdf` files and enforcing size limits.
 
-### Running the Application
+---
 
-1. Start the backend server:
-   ```
-   cd server
-   node server.js
-   ```
+## Folder Structure
 
-2. Start the frontend application:
-   ```
-   cd ../client
-   npm run dev
-   ```
-
-3. Open your browser and navigate to `http://localhost:3000` to view the application.
-
-## Features
-- Real-time document upload and management
-- Responsive dashboard layout
-- File upload support with Multer
-- CORS enabled for cross-origin requests
-
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+```text
+realtime-document-dashboard/
+├── client/
+│   ├── src/
+│   │   ├── components/     # Reusable UI components (UploadZone, FilePreview)
+│   │   ├── layouts/        # Page layouts (DashboardLayout)
+│   │   ├── pages/          # Main views (Dashboard, Uploads)
+│   │   └── socket/         # Socket.IO client utilities
+│   ├── tailwind.config.js
+│   └── package.json
+└── server/
+    ├── config/             # Database connection setup
+    ├── controllers/        # Route logic and database interactions
+    ├── middleware/         # Multer configuration and file validation
+    ├── models/             # Mongoose schemas
+    ├── routes/             # Express API routes
+    ├── sockets/            # Socket.IO server handling
+    ├── uploads/            # Local storage for uploaded documents
+    └── server.js           # Main Express application
+```
