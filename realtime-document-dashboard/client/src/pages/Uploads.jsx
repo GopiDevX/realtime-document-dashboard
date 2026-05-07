@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { socket } from '../socket/socketClient';
 import UploadZone from '../components/UploadZone';
 import FilePreviewCard from '../components/FilePreviewCard';
 
 const Uploads = () => {
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleFilesSelected = (newFiles) => {
     // Prevent duplicates by checking name and size
@@ -20,6 +23,7 @@ const Uploads = () => {
     }));
 
     setFiles(prev => [...prev, ...newFileObjects]);
+    setIsCollapsed(false); // uncollapse when new files are added
   };
 
   const removeFile = (fileName) => {
@@ -32,13 +36,26 @@ const Uploads = () => {
 
     setIsUploading(true);
 
-    // Upload files sequentially or in parallel. Let's do parallel for speed, but updating their status individually.
+    const isBulk = pendingFiles.length > 3;
+
+    if (isBulk) {
+      setIsCollapsed(true);
+      toast(`Upload in progress — processing ${pendingFiles.length} files in background`, {
+        icon: '⏳',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    }
+
     const uploadPromises = pendingFiles.map(async (fileObj) => {
       // Mark as uploading
       updateFileStatus(fileObj.file.name, 'uploading', 0);
 
       const formData = new FormData();
-      formData.append('document', fileObj.file); // Assuming backend expects 'document' field, wait, multer expects whatever field name we define. Let's use 'document'.
+      formData.append('document', fileObj.file);
 
       try {
         const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
@@ -55,14 +72,30 @@ const Uploads = () => {
 
         // Mark as completed
         updateFileStatus(fileObj.file.name, 'completed', 100);
+        return true;
       } catch (error) {
         console.error('Upload failed for', fileObj.file.name, error);
         updateFileStatus(fileObj.file.name, 'failed', 0);
+        return false;
       }
     });
 
-    await Promise.allSettled(uploadPromises);
+    const results = await Promise.allSettled(uploadPromises);
+    
+    // Count successful uploads
+    const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+
     setIsUploading(false);
+
+    if (isBulk && successCount > 0) {
+      // Emit event to backend which will broadcast to all clients including this one
+      socket.emit('bulk-upload-complete', { count: successCount });
+    } else if (successCount > 0 && !isBulk) {
+      // Small uploads get a normal toast
+      toast.success(`${successCount} files uploaded successfully!`);
+    } else if (successCount === 0) {
+      toast.error('All uploads failed. Please try again.');
+    }
   };
 
   const updateFileStatus = (fileName, status, progress) => {
@@ -90,11 +123,21 @@ const Uploads = () => {
       </div>
 
       {files.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300">
           <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h3 className="font-bold text-gray-800">
-              Selected Files <span className="ml-2 bg-brand-100 text-brand-600 py-0.5 px-2.5 rounded-full text-sm">{files.length}</span>
-            </h3>
+            <div className="flex items-center">
+              <h3 className="font-bold text-gray-800">
+                Selected Files <span className="ml-2 bg-brand-100 text-brand-600 py-0.5 px-2.5 rounded-full text-sm">{files.length}</span>
+              </h3>
+              {files.length > 3 && (
+                <button 
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className="ml-4 text-sm text-gray-500 hover:text-brand-600 transition-colors"
+                >
+                  {isCollapsed ? 'Show Details' : 'Hide Details'}
+                </button>
+              )}
+            </div>
             
             {pendingCount > 0 && (
               <button 
@@ -124,15 +167,17 @@ const Uploads = () => {
             )}
           </div>
           
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto">
-            {files.map((fileObj, idx) => (
-              <FilePreviewCard 
-                key={`${fileObj.file.name}-${idx}`} 
-                fileObj={fileObj} 
-                onRemove={removeFile}
-              />
-            ))}
-          </div>
+          {!isCollapsed && (
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto">
+              {files.map((fileObj, idx) => (
+                <FilePreviewCard 
+                  key={`${fileObj.file.name}-${idx}`} 
+                  fileObj={fileObj} 
+                  onRemove={removeFile}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,28 @@
 import { Outlet, NavLink } from 'react-router-dom';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { socket } from '../socket/socketClient';
 
 const DashboardLayout = () => {
+  useEffect(() => {
+    const handleBulkSuccess = (data) => {
+      toast.success(`${data.count} files uploaded successfully!`, {
+        icon: '🚀',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    };
+
+    socket.on('bulk-upload-success', handleBulkSuccess);
+
+    return () => {
+      socket.off('bulk-upload-success', handleBulkSuccess);
+    };
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
       {/* Sidebar */}
